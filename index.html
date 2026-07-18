@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#12897B">
-<meta name="description" content="Tidewater — an honest, on-device phone tidy tool: find duplicate photos, see where your photos back up, track apps and subscriptions, and clean up leftovers.">
-<title>Tidewater · phone tidy &amp; privacy</title>
+<meta name="description" content="Clean AF — an honest, on-device phone cleanup tool: find duplicate photos, see where your photos back up, list apps with descriptions, subscriptions and free alternatives, and clean up leftovers.">
+<title>Clean AF · phone cleanup</title>
 <style>html,body{margin:0}img{max-width:100%}</style>
 </head>
 <body>
@@ -266,6 +266,9 @@
     main{grid-column:2; max-width:760px; margin:0; padding:22px}
   }
   @media (max-width:380px){ .tiles{grid-template-columns:1fr 1fr} .tab span{display:none} }
+  #voiceBtn,#guideStart{touch-action:none; user-select:none; -webkit-user-select:none}
+  .alt{margin-top:6px; font-size:12px; color:var(--good); font-weight:650}
+  .alt b{color:var(--good)}
 </style>
 
 <div class="topbar">
@@ -273,7 +276,7 @@
     <div class="mark" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/><path d="M10 11v6M14 11v6"/></svg>
     </div>
-    <div><b>Tidewater</b><span>phone tidy &amp; privacy</span></div>
+    <div><b>Clean AF</b><span>phone cleanup, honestly</span></div>
   </div>
   <button class="iconbtn" id="voiceBtn" title="Voice assistant" aria-label="Voice assistant">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4M8 22h8"/></svg>
@@ -294,7 +297,7 @@
 <main>
   <div class="voicebar" id="voicebar">
     <span class="dot"></span>
-    <p id="voiceMsg"><b>Listening…</b> try "find duplicates", "where do my photos go", or "show my apps".</p>
+    <p id="voiceMsg"><b>Hold &amp; speak…</b> try "find duplicates", "where do my photos go", or "show my apps".</p>
     <button class="iconbtn x" id="voiceStop" aria-label="Stop listening"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
 
@@ -367,6 +370,11 @@
       <div class="tile"><div class="k">Total size</div><div class="v tnum" id="aSize">0<small> MB</small></div></div>
     </div>
 
+    <div class="note info">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div><b>How this works.</b> A web page can't read your installed-app list on its own, so add the ones you're unsure about — or pull them straight from the <b>reference list</b> below, which already tells you what each app does, whether it charges a subscription, and a <b>free alternative</b> that does the same job. Then export a confirm-first uninstall list — you approve every removal.</div>
+    </div>
+
     <div class="card">
       <h2>Add an app</h2>
       <p>Long-press an app on your phone → <b>App info</b> shows its size. Type what you find here.</p>
@@ -405,7 +413,7 @@
 
     <div class="card">
       <h2>Don't recognise an app? Reference list</h2>
-      <p>Common apps people forget they installed — what they do and whether they charge.</p>
+      <p>Commonly-forgotten apps — what each does, whether it charges a subscription, and a <b>free alternative</b> (shown in green). Tap <b>Track</b> to add one to your list.</p>
       <label class="field" style="margin-top:12px"><span>Search</span><input type="text" id="refSearch" placeholder="Type an app name…"></label>
       <div id="refList"></div>
     </div>
@@ -458,16 +466,16 @@
 
     <div class="card">
       <h2>Talk to it</h2>
-      <p>Works fully on your phone using its own speech engine — nothing is sent anywhere.</p>
+      <p><b>Hold the mic and speak, then release to send.</b> Works fully on your phone using its own speech engine — nothing is sent anywhere, and it only listens while you hold the button.</p>
       <div class="btnrow" style="margin-top:12px">
-        <button class="btn primary" id="guideStart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4M8 22h8"/></svg>Start listening</button>
+        <button class="btn primary" id="guideStart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4M8 22h8"/></svg><span id="guideStartLabel">Hold to talk</span></button>
         <button class="btn ghost" id="guideRead">Read this screen aloud</button>
       </div>
       <div id="voiceUnsupported" class="note" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
         <div>This browser doesn't support voice input. Everything still works by tapping. Chrome on Android gives the best voice results.</div>
       </div>
-      <p style="font-size:12.5px; color:var(--muted); margin-top:12px">Try: <i>"find duplicates" · "where do my photos go" · "show my apps" · "clean up leftovers" · "read this"</i></p>
+      <p style="font-size:12.5px; color:var(--muted); margin-top:12px">Hold the mic (top corner) and say: <i>"find duplicates" · "where do my photos go" · "show my apps" · "clean up leftovers" · "read this"</i></p>
     </div>
 
     <div class="note info">
@@ -482,7 +490,7 @@
         <div class="row" style="margin-top:8px"><div class="body"><h3><span class="chip keep">Does now</span> Show where photos back up + how to change it</h3></div></div>
         <div class="row" style="margin-top:8px"><div class="body"><h3><span class="chip keep">Does now</span> Track apps, sizes &amp; subscriptions</h3></div></div>
         <div class="row" style="margin-top:8px"><div class="body"><h3><span class="chip warn">Guides you</span> Delete files &amp; uninstall apps</h3><p>The phone blocks any app from doing this silently — so the tool builds you an exact list and walks you to the right screen.</p></div></div>
-        <div class="row" style="margin-top:8px"><div class="body"><h3><span class="chip remove">Needs a native app</span> Auto-delete, auto-uninstall, live AI chat</h3><p>These need OS permissions and a server connection only an installed app can have.</p></div></div>
+        <div class="row" style="margin-top:8px"><div class="body"><h3><span class="chip remove">Needs a native app</span> Auto-read your installed apps · live AI chat</h3><p>A web page can't pull your installed-app list for you or open a live connection to an AI. An installed app with the right permissions can — the natural next step.</p></div></div>
       </div>
     </div>
   </section>
@@ -675,7 +683,7 @@
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 
   function exportDeleteList(){
-    var lines=['DUPLICATE PHOTOS — DELETE LIST','Generated by Tidewater · '+new Date().toLocaleString(),
+    var lines=['DUPLICATE PHOTOS — DELETE LIST','Generated by Clean AF ·'+new Date().toLocaleString(),
       'Delete these in your Gallery/Files app. Keep the ones NOT listed here.','',''];
     var sel=$$('.thumb.sel'), bytes=0;
     if(!sel.length){ alert('Nothing selected to delete yet.'); return; }
@@ -809,7 +817,7 @@
   $('#markUninstall').addEventListener('click',function(){
     var sel=apps.filter(function(a){return a.sel}); if(!sel.length)return;
     var total=sel.reduce(function(s,a){return s+(+a.size||0)},0);
-    var lines=['APPS TO UNINSTALL','Generated by Tidewater · '+new Date().toLocaleString(),
+    var lines=['APPS TO UNINSTALL','Generated by Clean AF ·'+new Date().toLocaleString(),
       'Uninstall via: long-press the app → Uninstall (or Settings → Apps).',
       'Cancel any paid subscription SEPARATELY — deleting the app does not stop the charge.','',''];
     sel.forEach(function(a,i){ lines.push((i+1)+'. '+a.name+'  ('+a.size+' MB)'+(a.sub?'  ⚠ CANCEL SUBSCRIPTION':'')+(a.note?'\n    note: '+a.note:'')); });
@@ -818,7 +826,7 @@
   });
   $('#exportApps').addEventListener('click',function(){
     if(!apps.length){toast('No apps to export yet');return;}
-    var lines=['MY APP INVENTORY','Generated by Tidewater · '+new Date().toLocaleString(),'',''];
+    var lines=['MY APP INVENTORY','Generated by Clean AF ·'+new Date().toLocaleString(),'',''];
     apps.slice().sort(function(a,b){return b.size-a.size}).forEach(function(a){
       lines.push(a.name+' — '+a.size+' MB — '+a.cat+' — '+(a.sub?'PAID SUB':'free')+(a.note?' — '+a.note:''));
     });
@@ -827,39 +835,42 @@
 
   /* reference database */
   var REF=[
-    {n:'CapCut',c:'Video editing',s:false,d:'Popular free video editor. Extra effects/fonts push a Pro subscription.'},
-    {n:'Temu',c:'Shopping',s:false,d:'Discount shopping app. Free, but heavy on notifications and data use.'},
-    {n:'Calm',c:'Health & fitness',s:true,d:'Meditation & sleep. Almost everything is behind a yearly subscription.'},
-    {n:'Headspace',c:'Health & fitness',s:true,d:'Guided meditation. Free trial then a paid subscription.'},
-    {n:'MyFitnessPal',c:'Health & fitness',s:true,d:'Calorie & food tracker. Barcode scan and insights need Premium.'},
-    {n:'Duolingo',c:'Productivity',s:false,d:'Language learning. Free with ads; "Super" removes them for a fee.'},
-    {n:'Canva',c:'Productivity',s:false,d:'Design & posters. Free tier is generous; Pro unlocks premium assets.'},
-    {n:'Notion',c:'Productivity',s:false,d:'Notes & docs. Free for personal use; teams pay.'},
-    {n:'PicsArt',c:'Photos & camera',s:true,d:'Photo editor with a strong push to a Gold subscription and a trial that auto-bills.'},
-    {n:'Lensa',c:'Photos & camera',s:true,d:'AI selfie / avatar app. Trial then recurring charge — a common surprise bill.'},
-    {n:'FaceApp',c:'Photos & camera',s:true,d:'Face-aging & filters. Pro subscription with a short free trial.'},
-    {n:'Remini',c:'Photos & camera',s:true,d:'AI photo enhancer. Limited free uses, then subscription.'},
-    {n:'Cleaner / Booster apps',c:'Utility / cleaner',s:true,d:'"Speed boosters" & junk cleaners. Often do little, show ads, and push a subscription. Usually safe to remove.'},
-    {n:'Disney+',c:'Streaming',s:true,d:'Streaming service — paid monthly subscription.'},
-    {n:'Audible',c:'Streaming',s:true,d:'Audiobooks. Monthly credit subscription from Amazon.'},
-    {n:'Spotify',c:'Streaming',s:false,d:'Music. Free with ads; Premium removes them.'},
-    {n:'Robinhood',c:'Finance',s:false,d:'Stock trading app. Free; "Gold" tier is optional paid.'},
-    {n:'Cash App',c:'Finance',s:false,d:'Send/receive money. Free for basic use.'},
-    {n:'BeReal',c:'Social',s:false,d:'Once-a-day photo social app. Free.'},
-    {n:'Threads',c:'Social',s:false,d:'Text social app from Instagram. Free.'}
+    {n:'CapCut',c:'Video editing',s:false,d:'Popular video editor. Basics are free; extra effects/fonts push a Pro subscription.',alt:'Free: CapCut\'s own free tier, or your phone\'s built-in Photos/Gallery video trimmer.'},
+    {n:'Temu',c:'Shopping',s:false,d:'Discount shopping app. Free, but heavy on notifications and data use.',alt:''},
+    {n:'Calm',c:'Health & fitness',s:true,d:'Meditation & sleep. Almost everything is behind a yearly subscription.',alt:'Free: Insight Timer — thousands of free guided meditations and sleep sounds.'},
+    {n:'Headspace',c:'Health & fitness',s:true,d:'Guided meditation. Free trial then a paid subscription.',alt:'Free: Insight Timer, or Smiling Mind (fully free, non-profit).'},
+    {n:'MyFitnessPal',c:'Health & fitness',s:true,d:'Calorie & food tracker. Barcode scan and insights now need Premium.',alt:'Free: Cronometer or FatSecret — both include a free barcode scanner.'},
+    {n:'Noom',c:'Health & fitness',s:true,d:'Weight-loss coaching. Pricey recurring subscription after a cheap trial.',alt:'Free: Cronometer or FatSecret for tracking; free walking/step goals in your health app.'},
+    {n:'Duolingo',c:'Productivity',s:false,d:'Language learning. Free with ads; "Super" removes them for a fee.',alt:'Free: Duolingo\'s ad-supported tier is fully usable; also Anki for vocabulary.'},
+    {n:'Canva',c:'Productivity',s:false,d:'Design & posters. Free tier is generous; Pro unlocks premium assets.',alt:'Free: Canva free tier, or Adobe Express free / PhotoPea in a browser.'},
+    {n:'Grammarly',c:'Productivity',s:true,d:'Writing/grammar helper. Advanced suggestions need Premium.',alt:'Free: LanguageTool (free tier), or your keyboard\'s built-in spell-check.'},
+    {n:'Notion',c:'Productivity',s:false,d:'Notes & docs. Free for personal use; teams pay.',alt:'Free: Google Keep, Apple Notes, or Obsidian.'},
+    {n:'PicsArt',c:'Photos & camera',s:true,d:'Photo editor with a strong push to a Gold subscription and a trial that auto-bills.',alt:'Free: Snapseed (free, by Google) or your phone\'s built-in editor.'},
+    {n:'Lensa',c:'Photos & camera',s:true,d:'AI selfie / avatar app. Trial then recurring charge — a common surprise bill.',alt:'Free: Snapseed for editing; most phone cameras have free portrait filters.'},
+    {n:'FaceApp',c:'Photos & camera',s:true,d:'Face-aging & filters. Pro subscription with a short free trial.',alt:'Free: Snapseed, or the free filters in Instagram / your camera app.'},
+    {n:'Remini',c:'Photos & camera',s:true,d:'AI photo enhancer. A few free uses, then subscription.',alt:'Free: Google Photos "Enhance", or Snapseed\'s Details/Sharpen tools.'},
+    {n:'Cleaner / Booster apps',c:'Utility / cleaner',s:true,d:'"Speed boosters" & junk cleaners. Often do little, show ads, and push a subscription. Usually safe to remove.',alt:'Free: your phone\'s built-in Storage settings do the real cleanup — no app needed.'},
+    {n:'Scanner apps (CamScanner etc.)',c:'Utility / cleaner',s:true,d:'Document scanning. Watermarks/exports pushed behind a subscription.',alt:'Free: Google Drive scan, Apple Notes scan, or Microsoft Lens (all free).'},
+    {n:'Disney+',c:'Streaming',s:true,d:'Streaming service — paid monthly subscription.',alt:'Free: Tubi, Pluto TV, or your library\'s Kanopy/Hoopla.'},
+    {n:'Audible',c:'Streaming',s:true,d:'Audiobooks. Monthly credit subscription from Amazon.',alt:'Free: Libby / OverDrive — free audiobooks with a library card; LibriVox for classics.'},
+    {n:'Spotify',c:'Streaming',s:false,d:'Music. Free with ads; Premium removes them.',alt:'Free: Spotify\'s ad tier, YouTube Music free, or SoundCloud.'},
+    {n:'Robinhood',c:'Finance',s:false,d:'Stock trading app. Free; "Gold" tier is optional paid.',alt:''},
+    {n:'BeReal',c:'Social',s:false,d:'Once-a-day photo social app. Free.',alt:''},
+    {n:'Threads',c:'Social',s:false,d:'Text social app from Instagram. Free.',alt:''}
   ];
   function renderRef(q){
     q=(q||'').toLowerCase();
-    var arr=REF.filter(function(r){return !q||r.n.toLowerCase().indexOf(q)>=0||r.c.toLowerCase().indexOf(q)>=0});
+    var arr=REF.filter(function(r){return !q||r.n.toLowerCase().indexOf(q)>=0||r.c.toLowerCase().indexOf(q)>=0||r.d.toLowerCase().indexOf(q)>=0});
     var el=$('#refList');
     if(!arr.length){ el.innerHTML='<p class="empty">No match. It may still cost money — add it manually and check your subscriptions in the Play Store / App Store.</p>'; return; }
     el.innerHTML=arr.map(function(r){
       return '<div class="row"><div class="body"><h3>'+esc(r.n)+' '+(r.s?'<span class="chip sub">Paid sub</span>':'<span class="chip free">Free</span>')+'</h3>'
-        +'<p>'+esc(r.c)+' — '+esc(r.d)+'</p></div>'
-        +'<button class="btn ghost" data-add="'+esc(r.n)+'" data-cat="'+esc(r.c)+'" data-sub="'+r.s+'" style="align-self:center">Track</button></div>';
+        +'<p>'+esc(r.c)+' — '+esc(r.d)+'</p>'
+        +(r.alt?'<p class="alt">↳ '+esc(r.alt)+'</p>':'')+'</div>'
+        +'<button class="btn ghost" data-add="'+esc(r.n)+'" data-cat="'+esc(r.c)+'" data-sub="'+r.s+'" data-alt="'+esc(r.alt||'')+'" style="align-self:center">Track</button></div>';
     }).join('');
     $$('#refList [data-add]').forEach(function(b){b.addEventListener('click',function(){
-      apps.push({id:'a'+Date.now()+Math.random().toString(36).slice(2,6),name:b.dataset.add,size:0,cat:b.dataset.cat,used:'Not sure',note:'',sub:b.dataset.sub==='true',sel:false});
+      apps.push({id:'a'+Date.now()+Math.random().toString(36).slice(2,6),name:b.dataset.add,size:0,cat:b.dataset.cat,used:'Not sure',note:b.dataset.alt||'',sub:b.dataset.sub==='true',sel:false});
       saveApps(); renderApps(); toast('Added '+b.dataset.add+' — set its size'); go('apps');
     })});
   }
@@ -889,22 +900,37 @@
     for(var i=0;i<map.length;i++){ for(var j=0;j<map[i].k.length;j++){ if(text.indexOf(map[i].k[j])>=0){ go(map[i].t); speak(TAB_INTRO[map[i].t]); return; } } }
     speak("I didn't catch a command. Try: find duplicates, where do my photos go, or show my apps.");
   }
+  var transcriptBuf='';
+  function setHoldLabel(on){ var g=$('#guideStartLabel'); if(g) g.textContent=on?'Listening… release':'Hold to talk'; }
   function startVoice(){
     if(!SR){ go('guide'); $('#voiceUnsupported').style.display='flex'; speak("Voice isn't supported in this browser, but everything works by tapping."); return; }
-    if(listening){ stopVoice(); return; }
-    rec=new SR(); rec.lang=navigator.language||'en-US'; rec.interimResults=false; rec.maxAlternatives=1;
-    rec.onstart=function(){ listening=true; $('#voicebar').classList.add('show'); $('#voiceBtn').classList.add('live');
-      $('#voiceMsg').innerHTML='<b>Listening…</b> try "find duplicates", "where do my photos go", or "show my apps".';
+    if(listening) return;
+    transcriptBuf='';
+    rec=new SR(); rec.lang=navigator.language||'en-US'; rec.continuous=true; rec.interimResults=false; rec.maxAlternatives=1;
+    rec.onstart=function(){ listening=true; $('#voicebar').classList.add('show'); $('#voiceBtn').classList.add('live'); setHoldLabel(true);
+      $('#voiceMsg').innerHTML='<b>Listening…</b> keep holding, then release to send.';
     };
-    rec.onresult=function(e){ handleCommand(e.results[0][0].transcript); };
-    rec.onerror=function(e){ $('#voiceMsg').innerHTML='<b>Trouble hearing you.</b> Check mic permission, then tap the mic again.'; };
-    rec.onend=function(){ listening=false; $('#voicebar').classList.remove('show'); $('#voiceBtn').classList.remove('live'); };
+    rec.onresult=function(e){
+      for(var i=e.resultIndex;i<e.results.length;i++){ if(e.results[i].isFinal) transcriptBuf+=e.results[i][0].transcript+' '; }
+      var t=transcriptBuf.trim(); if(t) $('#voiceMsg').innerHTML='<b>Heard:</b> "'+esc(t)+'"';
+    };
+    rec.onerror=function(e){ $('#voiceMsg').innerHTML='<b>Trouble hearing you.</b> Check mic permission, then hold the mic again.'; };
+    rec.onend=function(){ listening=false; $('#voicebar').classList.remove('show'); $('#voiceBtn').classList.remove('live'); setHoldLabel(false);
+      var t=transcriptBuf.trim(); if(t) handleCommand(t);
+    };
     try{ rec.start(); }catch(e){}
   }
-  function stopVoice(){ if(rec){try{rec.stop()}catch(e){}} listening=false; $('#voicebar').classList.remove('show'); $('#voiceBtn').classList.remove('live'); }
-  $('#voiceBtn').addEventListener('click',startVoice);
+  function stopVoice(){ if(rec&&listening){ try{rec.stop()}catch(e){} } }
+  function bindHold(btn){
+    btn.addEventListener('pointerdown',function(e){ e.preventDefault(); startVoice(); });
+    ['pointerup','pointerleave','pointercancel'].forEach(function(ev){ btn.addEventListener(ev,function(){ stopVoice(); }); });
+    btn.addEventListener('keydown',function(e){ if((e.key===' '||e.key==='Enter')&&!listening){ e.preventDefault(); startVoice(); } });
+    btn.addEventListener('keyup',function(e){ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); stopVoice(); } });
+    btn.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+  }
+  bindHold($('#voiceBtn'));
+  bindHold($('#guideStart'));
   $('#voiceStop').addEventListener('click',stopVoice);
-  $('#guideStart').addEventListener('click',startVoice);
   $('#guideRead').addEventListener('click',readScreen);
   if(!SR){ $('#voiceUnsupported').style.display='flex'; }
 })();

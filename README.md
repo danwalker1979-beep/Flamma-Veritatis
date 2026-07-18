@@ -1,6 +1,6 @@
-# Tidewater — phone tidy &amp; privacy
+# Clean AF — phone cleanup, honestly
 
-An honest, on-device tool for tidying up a phone. Open `index.html` in a phone
+An on-device tool for tidying up a phone. Open `index.html` in a phone
 browser (no install) and everything runs locally — no photos, apps, or data
 ever leave the device.
 
@@ -10,26 +10,33 @@ ever leave the device.
 | --- | --- |
 | **Duplicate photos** | Pick photos (or a folder); it groups identical **and** near-identical shots side by side, keeps the best copy, and builds an exact delete list with file names and folders. Matching uses SHA-256 for exact copies and an 8×8 average-hash for look-alikes — all in the browser. |
 | **Photo dashboard** | Every service that can auto-upload photos (Google Photos, iCloud, OneDrive, Amazon Photos, Dropbox, Samsung Cloud…) with the exact steps to switch each one off, plus a "which one is my backup home" tracker. |
-| **App inventory** | Log apps with their size and whether they cost a subscription (free trials counted as paid), sort by size, and export an uninstall list. Includes a reference list of commonly-forgotten apps. |
+| **App inventory** | Track apps with a plain-English **description**, whether they need a **paid subscription** (free trials counted as paid), and a **free alternative** that does the same job. Sort by size, then export a **confirm-first uninstall list** — you approve every removal. Includes a searchable reference list of commonly-forgotten apps. |
 | **Cleanup** | Step-by-step guidance for finding and safely removing folders left behind by uninstalled apps, on Android and iPhone. |
-| **Voice assistant** | Hands-free navigation using the phone's own speech engine — say "find duplicates", "where do my photos go", "show my apps", "read this". Offline and private. |
+| **Voice assistant** | Hands-free **press-and-hold** navigation using the phone's own speech engine — hold the mic, say "find duplicates" / "where do my photos go" / "show my apps" / "read this", release to send. It only listens while held. Offline and private. |
 
-## Honest limits (these apply to *every* app, not just this one)
+## About the app list
 
-Modern phones deliberately sandbox apps, so no app can:
+The app inventory does exactly what a cleanup list should: names each app, says
+what it does, flags whether it charges a subscription, and suggests a free
+alternative — then exports a list you confirm before uninstalling anything.
 
-- **silently delete files or uninstall other apps** — the OS requires you to
-  confirm each one. This tool builds an exact list and walks you to the right
-  screen instead.
-- **flip another app's cloud-backup switch** — so the photo dashboard shows you
-  exactly where each toggle lives rather than pretending to change it.
-- **open a live AI chat from a shareable web page** — the sandbox blocks
-  outbound connections, so the built-in assistant is an offline voice guide.
-  A real conversational assistant would require a native (installed) app.
+Two honest notes:
 
-Deeper features (automatic deletion, reading the full installed-app list with
-sizes, live AI chat) are only possible in a native Android/iOS app with the
-matching OS permissions — that's the natural next step from this prototype.
+- **A web page can't read your installed-app list automatically.** So you add
+  the apps you're unsure about, or pull them from the built-in reference list
+  (which already has the description, subscription flag, and free alternative).
+  Reading the full installed list for you needs a native app with OS
+  permission.
+- **Nothing is deleted or uninstalled without you.** By design the phone makes
+  you confirm every uninstall — this tool builds the exact list and walks you
+  to the right screen. It never removes anything on its own.
+
+The same applies to photo backups: no app can flip another app's cloud toggle,
+so the photo dashboard shows you exactly where each switch lives instead.
+
+A native (installed) Android/iOS app is the next step for the two web-only
+gaps: reading your installed apps automatically, and a live conversational AI
+assistant.
 
 ## Run it
 
