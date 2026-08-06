@@ -1,0 +1,15 @@
+{
+  "name": "companion-chat",
+  "version": "0.1.0",
+  "description": "An emotionally responsive AI chat companion with a mood and rapport system.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
+    "express": "^5.1.0"
+  }
+}

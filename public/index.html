@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Companion</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="avatar" id="avatar">🙂</div>
+        <div class="who">
+          <div class="name" id="name">…</div>
+          <div class="status">
+            <span id="moodLabel">neutral</span>
+            <span class="dot">·</span>
+            <span id="readLabel"></span>
+          </div>
+        </div>
+        <div class="rapport">
+          <div class="rapport-label">rapport <span id="rapportNum">10</span></div>
+          <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
+        </div>
+        <button id="voiceToggle" class="voice-toggle" title="Toggle voice" aria-pressed="true">🔊</button>
+      </header>
+
+      <main class="messages" id="messages"></main>
+
+      <form class="composer" id="composer">
+        <input
+          id="input"
+          type="text"
+          autocomplete="off"
+          placeholder="Say something…"
+        />
+        <button type="submit" id="send">Send</button>
+      </form>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>
