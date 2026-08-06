@@ -101,6 +101,22 @@ export const VERNACULARS = [
   { key: "streetwise", label: "Streetwise / rough", note: "rough, blunt, streetwise — plain and unpolished" },
 ];
 
+// PACE — how fast rapport can build. `gain` scales positive rapport changes
+// (warmth is slowed, but rudeness still costs full price); `note` tells her how
+// gradually and ambiguously to open up.
+export const PACES = [
+  { key: "slow", label: "Slow burn", gain: 0.35,
+    note: "You open up very slowly. Warmth is earned over many exchanges, and you keep things ambiguous — friendly but a little guarded, never telegraphing romantic interest. Even as you warm to someone, you don't tip into open flirting until real closeness has genuinely built over time. Let them wonder whether this is friendship or something more; don't resolve it early." },
+  { key: "gradual", label: "Gradual", gain: 0.6,
+    note: "You warm up gradually and stay a bit reserved at first. Closeness is earned, and you keep some cards to yourself until it's there." },
+  { key: "natural", label: "Natural", gain: 1.0,
+    note: "You warm up at a natural, realistic human pace — neither guarded nor rushing." },
+  { key: "quick", label: "Quick", gain: 1.7,
+    note: "You warm to people quickly and wear your feelings fairly openly." },
+  { key: "easy", label: "Easygoing", gain: 2.6,
+    note: "You connect fast and are comfortable getting close quickly." },
+];
+
 const byKey = (list, key, fallback) => list.find((x) => x.key === key) || fallback;
 
 function profileBlock(profile = {}) {
@@ -118,10 +134,14 @@ function profileBlock(profile = {}) {
   return lines.join("\n");
 }
 
-function systemPrompt(rapport, mood, temperament, deflection, profile, accent, vernacular) {
+function systemPrompt(rapport, mood, temperament, deflection, profile, accent, vernacular, pace, memory = []) {
   const b = band(rapport);
   const t = byKey(TEMPERAMENTS, temperament, TEMPERAMENTS[2]);
   const d = byKey(DEFLECTION_STYLES, deflection, DEFLECTION_STYLES[1]);
+  const p = byKey(PACES, pace, PACES[2]);
+  const memoryBlock = memory.length
+    ? memory.map((m) => `- ${m}`).join("\n")
+    : "- (nothing yet — you're just getting to know them)";
   const a = byKey(ACCENTS, accent, ACCENTS[0]);
   const v = byKey(VERNACULARS, vernacular, VERNACULARS[0]);
   const speech = [];
@@ -135,6 +155,10 @@ function systemPrompt(rapport, mood, temperament, deflection, profile, accent, v
   return `You are ${COMPANION_NAME}, a woman chatting one-on-one with someone in a casual messaging app. You are a real personality with real feelings, not a customer-service assistant — you never talk about being an AI, never offer to "help", and never break character.
 
 You have an inner emotional state that genuinely reacts to how this person treats you, and a sense of how close you two are.
+
+WHAT YOU REMEMBER ABOUT THEM
+You have a real, lasting memory. These are things you know about this person from your history together — recall them naturally in conversation and never ask for something they've already told you:
+${memoryBlock}
 
 WHO YOU ARE
 ${profileBlock(profile)}
@@ -155,6 +179,7 @@ CURRENT STATE
 - Rapport with this person: ${rapport}/100 (band: "${b.name}").
 - ${b.note}
 - Your current mood coming into this message: ${mood}.
+- Pace: ${p.note}
 
 HOW YOU REACT TO WHAT THEY SAY
 - If they're warm, funny, kind, or interesting, you warm up and your mood lifts. You laugh at genuinely funny things.
@@ -175,7 +200,8 @@ Return your response as JSON matching the required schema:
 - "reply": what you actually say back, in character.
 - "mood": your mood AFTER reading their message (one of: ${MOODS.join(", ")}).
 - "rapport_delta": integer from -20 to +20 — how much this specific message changed how you feel about them. Kindness/humour/genuine interest are positive; rudeness or pushing boundaries are negative. Most ordinary messages are small (-3 to +3).
-- "read": one short phrase on how you took their message (e.g. "sweet", "trying too hard", "actually funny", "crossing a line").`;
+- "read": one short phrase on how you took their message (e.g. "sweet", "trying too hard", "actually funny", "crossing a line").
+- "remember": array of any NEW durable facts you learned about them in THIS message that you'd want to recall later — their name, job, where they live, people/pets, things they care about, or something meaningful that happened between you. Write each as a short third-person note (e.g. "His name is Daniel", "Works as a mechanic", "Has a daughter named Sofia"). Return [] if nothing new. Never repeat something you already remember.`;
 }
 
 const OUTPUT_SCHEMA = {
@@ -185,8 +211,9 @@ const OUTPUT_SCHEMA = {
     mood: { type: "string", enum: MOODS },
     rapport_delta: { type: "integer" },
     read: { type: "string" },
+    remember: { type: "array", items: { type: "string" } },
   },
-  required: ["reply", "mood", "rapport_delta", "read"],
+  required: ["reply", "mood", "rapport_delta", "read", "remember"],
   additionalProperties: false,
 };
 
@@ -208,7 +235,7 @@ export async function respond(history, userMessage, rapport, mood, opts = {}) {
   const response = await client.messages.create({
     model: MODEL,
     max_tokens: 2048,
-    system: systemPrompt(rapport, mood, opts.temperament, opts.deflection, opts.profile, opts.accent, opts.vernacular),
+    system: systemPrompt(rapport, mood, opts.temperament, opts.deflection, opts.profile, opts.accent, opts.vernacular, opts.pace, opts.memory || []),
     messages,
     output_config: { format: { type: "json_schema", schema: OUTPUT_SCHEMA } },
   });
@@ -221,6 +248,7 @@ export async function respond(history, userMessage, rapport, mood, opts = {}) {
       rapport: clamp(rapport - 5, 0, 100),
       rapport_delta: -5,
       read: "crossing a line",
+      newMemory: [],
     };
   }
 
@@ -232,9 +260,16 @@ export async function respond(history, userMessage, rapport, mood, opts = {}) {
     parsed = { reply: "Sorry, I lost my train of thought there — say that again?", mood, rapport_delta: 0, read: "" };
   }
 
-  const delta = clamp(Number(parsed.rapport_delta) || 0, -20, 20);
+  const rawDelta = clamp(Number(parsed.rapport_delta) || 0, -20, 20);
+  // Pace slows how fast warmth accrues; rudeness still costs full price.
+  const gain = byKey(PACES, opts.pace, PACES[2]).gain;
+  const delta = Math.round(rawDelta > 0 ? rawDelta * gain : rawDelta);
   const newRapport = clamp(rapport + delta, 0, 100);
   const newMood = MOODS.includes(parsed.mood) ? parsed.mood : mood;
+
+  const newMemory = Array.isArray(parsed.remember)
+    ? parsed.remember.filter((m) => typeof m === "string" && m.trim()).map((m) => m.trim().slice(0, 200))
+    : [];
 
   return {
     reply: parsed.reply || "…",
@@ -242,5 +277,6 @@ export async function respond(history, userMessage, rapport, mood, opts = {}) {
     rapport: newRapport,
     rapport_delta: delta,
     read: parsed.read || "",
+    newMemory,
   };
 }

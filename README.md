@@ -67,6 +67,30 @@ assert something plainly false as established fact (she can still explore it and
 take your side of the conversation). Edit `EDUCATION_LEVELS` / `POLITICS` in
 `companion.js` to extend these.
 
+### Pace
+
+A **pace** dial controls how fast rapport can build — from `Slow burn` (warmth is
+earned over many exchanges and she keeps it ambiguous, never telegraphing whether
+it's friendship or attraction) through `Gradual`, `Natural`, `Quick`, to
+`Easygoing`. It slows the *math* (positive rapport changes are scaled down) and
+tells her to open up gradually. Rudeness always costs full price regardless of
+pace.
+
+## Memory
+
+She has **persistent, server-side memory**. State is stored per browser (a stable
+`userId` in `localStorage`) as a JSON file under `data/`, so she remembers you
+across page reloads and server restarts:
+
+- **Learned facts** — each turn she notes durable things about you (name, job,
+  people you mention, what you care about) and recalls them naturally, without
+  asking twice.
+- **The relationship** — your rapport, her mood, your settings, and the recent
+  conversation all restore when you reopen the page.
+- **Reset** — "Forget me & start over" in the ⚙️ panel wipes her memory of you.
+
+The `data/` directory is gitignored. Point `DATA_DIR` elsewhere to relocate it.
+
 ## Voice
 
 She speaks her replies out loud, and her delivery follows her mood.

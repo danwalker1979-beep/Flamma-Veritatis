@@ -25,6 +25,7 @@ const els = {
   settings: document.getElementById("settings"),
   temperamentRow: document.getElementById("temperamentRow"),
   deflectionRow: document.getElementById("deflectionRow"),
+  paceRow: document.getElementById("paceRow"),
   occupation: document.getElementById("occupation"),
   education: document.getElementById("education"),
   interests: document.getElementById("interests"),
@@ -32,6 +33,31 @@ const els = {
   politicsNote: document.getElementById("politicsNote"),
   accent: document.getElementById("accent"),
   vernacular: document.getElementById("vernacular"),
+  reset: document.getElementById("reset"),
+};
+
+// A stable id per browser so she remembers this person across sessions.
+function getUserId() {
+  let id = localStorage.getItem("companionUserId");
+  if (!id) {
+    id = crypto.randomUUID ? crypto.randomUUID() : "u" + Date.now() + Math.random().toString(36).slice(2);
+    localStorage.setItem("companionUserId", id);
+  }
+  return id;
+}
+const userId = getUserId();
+
+const state = {
+  name: "Companion",
+  rapport: 10,
+  mood: "neutral",
+  voiceOn: true,
+  expressiveVoice: false,
+  temperament: "chill",
+  deflection: "balanced",
+  pace: "natural",
+  temperaments: [],
+  accents: [],
 };
 
 function fillSelect(sel, options) {
@@ -43,20 +69,6 @@ function fillSelect(sel, options) {
     sel.appendChild(o);
   }
 }
-
-// Conversation state lives in the browser; the server is stateless.
-const state = {
-  name: "Companion",
-  history: [], // {role, content}
-  rapport: 10,
-  mood: "neutral",
-  voiceOn: true,
-  expressiveVoice: false, // server has an expressive TTS provider configured
-  temperament: "chill",
-  deflection: "balanced",
-  temperaments: [],
-  accents: [],
-};
 
 // Build a segmented control; onPick(key) fires on selection.
 function buildSegmented(row, options, selectedKey, onPick) {
@@ -146,7 +158,6 @@ function render() {
 function addBubble(role, text, extraClass = "") {
   const div = document.createElement("div");
   div.className = `msg ${role === "user" ? "me" : "them"} ${extraClass}`.trim();
-  // Assistant lines may carry voice cues; show the cleaned text.
   div.textContent = role === "assistant" && !extraClass ? displayText(text) : text;
   els.messages.appendChild(div);
   els.messages.scrollTop = els.messages.scrollHeight;
@@ -166,41 +177,76 @@ els.settingsToggle.addEventListener("click", () => {
   els.settingsToggle.setAttribute("aria-pressed", String(showing));
 });
 
-async function init() {
+els.reset.addEventListener("click", async () => {
+  if (!confirm("Wipe her memory of you and start over?")) return;
   try {
-    const cfg = await (await fetch("/api/config")).json();
-    state.name = cfg.name || state.name;
-    state.expressiveVoice = Boolean(cfg.expressiveVoice);
-    state.temperaments = cfg.temperaments || [];
-
-    buildSegmented(els.temperamentRow, state.temperaments, state.temperament, (key) => {
-      state.temperament = key;
-      // Reflect the new starting disposition on the face right away.
-      const t = state.temperaments.find((x) => x.key === key);
-      if (t && t.startMood) {
-        state.mood = t.startMood;
-        render();
-      }
+    await fetch("/api/reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
     });
-    buildSegmented(els.deflectionRow, cfg.deflectionStyles || [], state.deflection, (key) => {
-      state.deflection = key;
-    });
-
-    fillSelect(els.education, cfg.educationLevels || []);
-    els.education.value = "highschool";
-    fillSelect(els.politics, cfg.politics || []);
-    els.politics.value = "unset";
-
-    state.accents = cfg.accents || [];
-    fillSelect(els.accent, state.accents);
-    els.accent.value = "neutral";
-    fillSelect(els.vernacular, cfg.vernaculars || []);
-    els.vernacular.value = "match";
   } catch {}
+  location.reload();
+});
+
+async function init() {
+  let cfg = {};
+  let sess = {};
+  try {
+    cfg = await (await fetch("/api/config")).json();
+  } catch {}
+  try {
+    sess = await (await fetch(`/api/session?userId=${encodeURIComponent(userId)}`)).json();
+  } catch {}
+
+  state.name = cfg.name || state.name;
+  state.expressiveVoice = Boolean(cfg.expressiveVoice);
+  state.temperaments = cfg.temperaments || [];
+  state.accents = cfg.accents || [];
+
+  const s = sess.settings || {};
+  const prof = s.profile || {};
+  state.temperament = s.temperament || "chill";
+  state.deflection = s.deflection || "balanced";
+  state.pace = s.pace || "natural";
+
+  buildSegmented(els.temperamentRow, state.temperaments, state.temperament, (key) => {
+    state.temperament = key;
+    const t = state.temperaments.find((x) => x.key === key);
+    if (t && t.startMood) {
+      state.mood = t.startMood;
+      render();
+    }
+  });
+  buildSegmented(els.deflectionRow, cfg.deflectionStyles || [], state.deflection, (key) => {
+    state.deflection = key;
+  });
+  buildSegmented(els.paceRow, cfg.paces || [], state.pace, (key) => {
+    state.pace = key;
+  });
+
+  fillSelect(els.education, cfg.educationLevels || []);
+  els.education.value = prof.education || "highschool";
+  fillSelect(els.politics, cfg.politics || []);
+  els.politics.value = prof.politics || "unset";
+  fillSelect(els.accent, state.accents);
+  els.accent.value = s.accent || "neutral";
+  fillSelect(els.vernacular, cfg.vernaculars || []);
+  els.vernacular.value = s.vernacular || "match";
+  els.occupation.value = prof.occupation || "";
+  els.interests.value = prof.interests || "";
+  els.politicsNote.value = prof.politicsNote || "";
+
+  if (Number.isFinite(sess.rapport)) state.rapport = sess.rapport;
+  if (sess.mood) state.mood = sess.mood;
   render();
-  const greeting = `Hey. I'm ${state.name}. Who are you?`;
-  addBubble("assistant", greeting);
-  state.history.push({ role: "assistant", content: greeting });
+
+  // Restore the conversation, or greet a new person.
+  if (Array.isArray(sess.history) && sess.history.length) {
+    for (const m of sess.history) addBubble(m.role, m.content);
+  } else {
+    addBubble("assistant", `Hey. I'm ${state.name}. Who are you?`);
+  }
 }
 
 els.form.addEventListener("submit", async (e) => {
@@ -211,7 +257,6 @@ els.form.addEventListener("submit", async (e) => {
   els.input.value = "";
   els.send.disabled = true;
   addBubble("user", message);
-  state.history.push({ role: "user", content: message });
 
   const typing = addBubble("assistant", `${state.name} is typing…`, "typing");
 
@@ -220,12 +265,11 @@ els.form.addEventListener("submit", async (e) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        history: state.history.slice(0, -1), // everything before this user turn
+        userId,
         message,
-        rapport: state.rapport,
-        mood: state.mood,
         temperament: state.temperament,
         deflection: state.deflection,
+        pace: state.pace,
         accent: els.accent.value,
         vernacular: els.vernacular.value,
         profile: {
@@ -251,7 +295,6 @@ els.form.addEventListener("submit", async (e) => {
     render();
 
     addBubble("assistant", data.reply);
-    state.history.push({ role: "assistant", content: displayText(data.reply) });
     speak(data.reply, data.mood);
   } catch (err) {
     typing.remove();

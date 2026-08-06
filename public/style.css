@@ -134,6 +134,17 @@ body {
 .field:focus { border-color: var(--accent); }
 .field-sub { margin-top: 6px; }
 select.field { appearance: none; cursor: pointer; }
+.reset-btn {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+.reset-btn:hover { border-color: var(--accent); color: var(--text); }
 
 .messages {
   flex: 1;

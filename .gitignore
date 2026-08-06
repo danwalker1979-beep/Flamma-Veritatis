@@ -1,3 +1,6 @@
 node_modules/
 .env
 *.log
+
+# Persistent per-user memory
+data/
