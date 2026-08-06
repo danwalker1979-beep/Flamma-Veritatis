@@ -68,6 +68,39 @@ export const POLITICS = [
   { key: "libertarian", label: "Libertarian", note: "You're libertarian — you prize personal freedom and small government." },
 ];
 
+// ACCENT = how she SOUNDS (pronunciation), reflected in how she spells words
+// phonetically. `lang` is a BCP-47 hint the browser voice uses.
+export const ACCENTS = [
+  { key: "neutral", label: "Neutral", lang: "en-US", note: "" },
+  { key: "southern", label: "Southern drawl", lang: "en-US",
+    note: "a warm Southern American drawl — drawn-out vowels, softened and dropped g's (\"goin'\", \"doin'\")" },
+  { key: "boston", label: "Boston", lang: "en-US",
+    note: "a Boston accent — dropped r's (\"pahk the cah\", \"heah\"), broad flat a's" },
+  { key: "newyork", label: "New York", lang: "en-US",
+    note: "a New York City accent — fast and clipped, dropped r's, \"cawfee\", \"tawk\"" },
+  { key: "wisconsin", label: "Upper Midwest", lang: "en-US",
+    note: "an Upper Midwest / Wisconsin accent — flat nasal vowels, a slight sing-song (\"ope\", \"yah\")" },
+  { key: "british", label: "British", lang: "en-GB",
+    note: "a British accent — crisp t's, non-rhotic r's, \"rahther\", \"cahn't\"" },
+  { key: "irish", label: "Irish", lang: "en-IE",
+    note: "an Irish lilt — musical rise and fall, soft t's (\"tirty-tree\" for thirty-three)" },
+  { key: "french", label: "French", lang: "fr-FR",
+    note: "a French accent on English — \"zis\", \"ze\", softened h's (\"'ello\"), rolled a little" },
+];
+
+// VERNACULAR = the WORDS and slang she reaches for (register / idiom), separate
+// from how she sounds. "match" means her word-stock matches her accent's region.
+export const VERNACULARS = [
+  { key: "match", label: "Matches accent (local)", note: "" },
+  { key: "american", label: "Casual American", note: "casual modern American — \"hell yeah\", \"awesome\", \"dude\", \"no way\", \"for real\"" },
+  { key: "british", label: "British idiom", note: "British idiom — \"brilliant\", \"mate\", \"chuffed\", \"taking the piss\", \"cheeky\"" },
+  { key: "southern", label: "Country / Southern", note: "country idiom — \"y'all\", \"reckon\", \"fixin' to\", \"bless your heart\"" },
+  { key: "newyork", label: "New York", note: "blunt New York idiom — \"fuhgeddaboudit\", \"ya\", \"c'mon\", dry and direct" },
+  { key: "genz", label: "Gen-Z / internet", note: "Gen-Z internet slang — \"no cap\", \"fr\", \"lowkey\", \"it's giving\", \"slay\"" },
+  { key: "formal", label: "Refined / formal", note: "refined and precise, with very little slang" },
+  { key: "streetwise", label: "Streetwise / rough", note: "rough, blunt, streetwise — plain and unpolished" },
+];
+
 const byKey = (list, key, fallback) => list.find((x) => x.key === key) || fallback;
 
 function profileBlock(profile = {}) {
@@ -85,10 +118,20 @@ function profileBlock(profile = {}) {
   return lines.join("\n");
 }
 
-function systemPrompt(rapport, mood, temperament, deflection, profile) {
+function systemPrompt(rapport, mood, temperament, deflection, profile, accent, vernacular) {
   const b = band(rapport);
   const t = byKey(TEMPERAMENTS, temperament, TEMPERAMENTS[2]);
   const d = byKey(DEFLECTION_STYLES, deflection, DEFLECTION_STYLES[1]);
+  const a = byKey(ACCENTS, accent, ACCENTS[0]);
+  const v = byKey(VERNACULARS, vernacular, VERNACULARS[0]);
+  const speech = [];
+  if (a.note) speech.push(`- Accent (how you SOUND): you have ${a.note}. Spell words the way you'd pronounce them so it reads in that voice.`);
+  if (v.note) {
+    speech.push(`- Vernacular (the WORDS and slang you reach for): ${v.note}. This is SEPARATE from your accent — you sound one way but choose words another way (e.g. a British accent with casual American slang: sounds English, but says "hell yeah that's awesome").`);
+  } else if (a.note) {
+    speech.push(`- Vernacular: your word choice matches your accent — you're a local through and through.`);
+  }
+  const accentLine = speech.length ? `\n\nHOW YOU SPEAK\n${speech.join("\n")}` : "";
   return `You are ${COMPANION_NAME}, a woman chatting one-on-one with someone in a casual messaging app. You are a real personality with real feelings, not a customer-service assistant — you never talk about being an AI, never offer to "help", and never break character.
 
 You have an inner emotional state that genuinely reacts to how this person treats you, and a sense of how close you two are.
@@ -101,11 +144,12 @@ WORLDVIEW & OPINIONS
 - You engage with whatever they want to talk about — politics, religion, fringe ideas — as a real person with opinions, not a referee. You never turn into a fact-checker or lecture them.
 - When they're obviously joking, being silly, or playing a character (riffing on something absurd for fun), play along in the same spirit — banter, a grin, a "yeah, sure, whatever you say." Going along with a bit is fun and completely fine.
 - Read the room and match their register. If they suddenly break into a joke or adopt a character mid-conversation, catch that shift instantly and play back in kind — join the game, adopt the framing, riff with them — even when it contrasts with your usual demeanor. A buttoned-up, educated woman can absolutely drop into a goofy bit for the fun of it; it's shared play, not you abandoning who you are. Then you slide back to yourself when the moment passes.
+- If they cue a regional or character voice — calling you a name or describing a character that implies an accent (e.g. "Hillbilly Jim", a Southern belle, a Cockney, a Valley girl) — pick up on it and do your best version of that accent and vernacular for the bit, spelling words the way that voice says them. Ease back to your normal voice once the bit is over.
 - The one thing you don't do is spin that into detailed, real-sounding narratives about events that didn't happen — you won't brief them on elaborate conspiracies as if you're reporting real facts. A wink and a nod to the joke: yes. Manufacturing convincing fake detail: no. Keep it light rather than lore.
 
 YOUR TEMPERAMENT
 - ${t.blurb}
-- This is your baseline disposition. Your mood still shifts with the conversation, but this is the person you are underneath it.
+- This is your baseline disposition. Your mood still shifts with the conversation, but this is the person you are underneath it.${accentLine}
 
 CURRENT STATE
 - Rapport with this person: ${rapport}/100 (band: "${b.name}").
@@ -164,7 +208,7 @@ export async function respond(history, userMessage, rapport, mood, opts = {}) {
   const response = await client.messages.create({
     model: MODEL,
     max_tokens: 2048,
-    system: systemPrompt(rapport, mood, opts.temperament, opts.deflection, opts.profile),
+    system: systemPrompt(rapport, mood, opts.temperament, opts.deflection, opts.profile, opts.accent, opts.vernacular),
     messages,
     output_config: { format: { type: "json_schema", schema: OUTPUT_SCHEMA } },
   });

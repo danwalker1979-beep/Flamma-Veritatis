@@ -1,7 +1,7 @@
 import express from "express";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { respond, COMPANION_NAME, MOODS, TEMPERAMENTS, DEFLECTION_STYLES, EDUCATION_LEVELS, POLITICS } from "./companion.js";
+import { respond, COMPANION_NAME, MOODS, TEMPERAMENTS, DEFLECTION_STYLES, EDUCATION_LEVELS, POLITICS, ACCENTS, VERNACULARS } from "./companion.js";
 import { synthesize, voiceEnabled } from "./tts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -18,6 +18,8 @@ app.get("/api/config", (_req, res) => {
     deflectionStyles: DEFLECTION_STYLES.map(({ key, label }) => ({ key, label })),
     educationLevels: EDUCATION_LEVELS.map(({ key, label }) => ({ key, label })),
     politics: POLITICS.map(({ key, label }) => ({ key, label })),
+    accents: ACCENTS.map(({ key, label, lang }) => ({ key, label, lang })),
+    vernaculars: VERNACULARS.map(({ key, label }) => ({ key, label })),
   });
 });
 
@@ -55,6 +57,8 @@ app.post("/api/chat", async (req, res) => {
   const opts = {
     temperament: typeof req.body?.temperament === "string" ? req.body.temperament : "chill",
     deflection: typeof req.body?.deflection === "string" ? req.body.deflection : "balanced",
+    accent: typeof req.body?.accent === "string" ? req.body.accent : "neutral",
+    vernacular: typeof req.body?.vernacular === "string" ? req.body.vernacular : "match",
     profile: {
       occupation: str(p.occupation),
       education: str(p.education, 40),

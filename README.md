@@ -36,6 +36,27 @@ Two dials, both live — change them any time and they apply to the next message
 Add temperaments or reword them in `TEMPERAMENTS` / `DEFLECTION_STYLES` in
 `companion.js`.
 
+### Accent vs. vernacular
+
+Two *separate* dials, because how someone **sounds** and the **words** they reach
+for are different things:
+
+- **Accent** — how she sounds (Southern drawl, Boston, British, French…), carried
+  in how she spells words phonetically, and used as a locale hint for the spoken
+  voice.
+- **Vernacular** — the slang and idiom she chooses (casual American, British,
+  Gen-Z, refined…), defaulting to "matches accent."
+
+Mix them to get things like *a British accent with casual American vernacular* —
+an Englishman raised in the States who sounds English but says "hell yeah that's
+awesome." She'll also **pick up an accent on the fly**: call her "Hillbilly Jim"
+and she does her best country for the bit, then eases back.
+
+> Note on the *spoken* accent: the written dialect always comes through, but a
+> true vocal accent depends on the voice. The browser fallback switches locale
+> where one exists (British, French); for full vocal accents on the expressive
+> path, point `ELEVENLABS_VOICE_ID` at a voice that has the accent you want.
+
 You can also fill in a **character sheet** — her work/background, education level
 (which shapes how she talks and what she references, from "left school early" to
 "doctorate"), her passions, and her political lean. Politics here is a

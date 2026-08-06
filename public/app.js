@@ -30,6 +30,8 @@ const els = {
   interests: document.getElementById("interests"),
   politics: document.getElementById("politics"),
   politicsNote: document.getElementById("politicsNote"),
+  accent: document.getElementById("accent"),
+  vernacular: document.getElementById("vernacular"),
 };
 
 function fillSelect(sel, options) {
@@ -53,6 +55,7 @@ const state = {
   temperament: "chill",
   deflection: "balanced",
   temperaments: [],
+  accents: [],
 };
 
 // Build a segmented control; onPick(key) fires on selection.
@@ -118,7 +121,14 @@ async function speak(text, mood) {
     const v = BROWSER_VOICE[mood] || BROWSER_VOICE.neutral;
     u.pitch = v.pitch;
     u.rate = v.rate;
-    const female = speechSynthesis.getVoices().find((x) => /female|woman|zira|samantha|aria/i.test(x.name));
+    // Nudge the spoken accent by locale where a matching voice exists.
+    const acc = state.accents.find((a) => a.key === els.accent.value);
+    const lang = (acc && acc.lang) || "en-US";
+    u.lang = lang;
+    const voices = speechSynthesis.getVoices();
+    const langMatch = voices.filter((x) => x.lang && x.lang.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()));
+    const pool = langMatch.length ? langMatch : voices;
+    const female = pool.find((x) => /female|woman|zira|samantha|aria|amelie|libby|sonia/i.test(x.name)) || pool.find((x) => x.lang === lang);
     if (female) u.voice = female;
     speechSynthesis.cancel();
     speechSynthesis.speak(u);
@@ -180,6 +190,12 @@ async function init() {
     els.education.value = "highschool";
     fillSelect(els.politics, cfg.politics || []);
     els.politics.value = "unset";
+
+    state.accents = cfg.accents || [];
+    fillSelect(els.accent, state.accents);
+    els.accent.value = "neutral";
+    fillSelect(els.vernacular, cfg.vernaculars || []);
+    els.vernacular.value = "match";
   } catch {}
   render();
   const greeting = `Hey. I'm ${state.name}. Who are you?`;
@@ -210,6 +226,8 @@ els.form.addEventListener("submit", async (e) => {
         mood: state.mood,
         temperament: state.temperament,
         deflection: state.deflection,
+        accent: els.accent.value,
+        vernacular: els.vernacular.value,
         profile: {
           occupation: els.occupation.value,
           education: els.education.value,
