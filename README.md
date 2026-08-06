@@ -36,6 +36,16 @@ Two dials, both live — change them any time and they apply to the next message
 Add temperaments or reword them in `TEMPERAMENTS` / `DEFLECTION_STYLES` in
 `companion.js`.
 
+You can also fill in a **character sheet** — her work/background, education level
+(which shapes how she talks and what she references, from "left school early" to
+"doctorate"), her passions, and her political lean. Politics here is a
+*personality trait*: she holds the view naturally, agrees with a like-minded
+partner, and never breaks character to moralize, disclaim, or fact-check. She'll
+engage with any topic as a person with opinions — the one thing she won't do is
+assert something plainly false as established fact (she can still explore it and
+take your side of the conversation). Edit `EDUCATION_LEVELS` / `POLITICS` in
+`companion.js` to extend these.
+
 ## Voice
 
 She speaks her replies out loud, and her delivery follows her mood.

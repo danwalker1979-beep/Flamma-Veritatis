@@ -1,7 +1,7 @@
 import express from "express";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { respond, COMPANION_NAME, MOODS, TEMPERAMENTS, DEFLECTION_STYLES } from "./companion.js";
+import { respond, COMPANION_NAME, MOODS, TEMPERAMENTS, DEFLECTION_STYLES, EDUCATION_LEVELS, POLITICS } from "./companion.js";
 import { synthesize, voiceEnabled } from "./tts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -16,6 +16,8 @@ app.get("/api/config", (_req, res) => {
     expressiveVoice: voiceEnabled,
     temperaments: TEMPERAMENTS.map(({ key, label, startMood }) => ({ key, label, startMood })),
     deflectionStyles: DEFLECTION_STYLES.map(({ key, label }) => ({ key, label })),
+    educationLevels: EDUCATION_LEVELS.map(({ key, label }) => ({ key, label })),
+    politics: POLITICS.map(({ key, label }) => ({ key, label })),
   });
 });
 
@@ -48,9 +50,18 @@ app.post("/api/chat", async (req, res) => {
     : [];
   const r = Number.isFinite(rapport) ? rapport : 10;
   const m = typeof mood === "string" ? mood : "neutral";
+  const p = req.body?.profile && typeof req.body.profile === "object" ? req.body.profile : {};
+  const str = (v, max = 400) => (typeof v === "string" ? v.slice(0, max) : "");
   const opts = {
     temperament: typeof req.body?.temperament === "string" ? req.body.temperament : "chill",
     deflection: typeof req.body?.deflection === "string" ? req.body.deflection : "balanced",
+    profile: {
+      occupation: str(p.occupation),
+      education: str(p.education, 40),
+      interests: str(p.interests),
+      politics: str(p.politics, 40),
+      politicsNote: str(p.politicsNote),
+    },
   };
 
   try {

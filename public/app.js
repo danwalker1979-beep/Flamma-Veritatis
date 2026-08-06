@@ -25,7 +25,22 @@ const els = {
   settings: document.getElementById("settings"),
   temperamentRow: document.getElementById("temperamentRow"),
   deflectionRow: document.getElementById("deflectionRow"),
+  occupation: document.getElementById("occupation"),
+  education: document.getElementById("education"),
+  interests: document.getElementById("interests"),
+  politics: document.getElementById("politics"),
+  politicsNote: document.getElementById("politicsNote"),
 };
+
+function fillSelect(sel, options) {
+  sel.innerHTML = "";
+  for (const opt of options) {
+    const o = document.createElement("option");
+    o.value = opt.key;
+    o.textContent = opt.label;
+    sel.appendChild(o);
+  }
+}
 
 // Conversation state lives in the browser; the server is stateless.
 const state = {
@@ -160,6 +175,11 @@ async function init() {
     buildSegmented(els.deflectionRow, cfg.deflectionStyles || [], state.deflection, (key) => {
       state.deflection = key;
     });
+
+    fillSelect(els.education, cfg.educationLevels || []);
+    els.education.value = "highschool";
+    fillSelect(els.politics, cfg.politics || []);
+    els.politics.value = "unset";
   } catch {}
   render();
   const greeting = `Hey. I'm ${state.name}. Who are you?`;
@@ -190,6 +210,13 @@ els.form.addEventListener("submit", async (e) => {
         mood: state.mood,
         temperament: state.temperament,
         deflection: state.deflection,
+        profile: {
+          occupation: els.occupation.value,
+          education: els.education.value,
+          interests: els.interests.value,
+          politics: els.politics.value,
+          politicsNote: els.politicsNote.value,
+        },
       }),
     });
     const data = await res.json();

@@ -121,6 +121,19 @@ body {
   border-color: var(--accent);
   color: #fff;
 }
+.field {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+.field:focus { border-color: var(--accent); }
+.field-sub { margin-top: 6px; }
+select.field { appearance: none; cursor: pointer; }
 
 .messages {
   flex: 1;
