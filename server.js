@@ -2,7 +2,7 @@ import express from "express";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { respond, COMPANION_NAME, MOODS, TEMPERAMENTS, DEFLECTION_STYLES, EDUCATION_LEVELS, POLITICS, ACCENTS, VERNACULARS, PACES } from "./companion.js";
-import { synthesize, voiceEnabled } from "./tts.js";
+import { synthesize, voiceEnabled, voicePresets } from "./tts.js";
 import { loadState, saveState, clearState, mergeMemory } from "./store.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -15,6 +15,7 @@ app.get("/api/config", (_req, res) => {
     name: COMPANION_NAME,
     moods: MOODS,
     expressiveVoice: voiceEnabled,
+    voices: voicePresets.map(({ key, label }) => ({ key, label })),
     temperaments: TEMPERAMENTS.map(({ key, label, startMood }) => ({ key, label, startMood })),
     deflectionStyles: DEFLECTION_STYLES.map(({ key, label }) => ({ key, label })),
     educationLevels: EDUCATION_LEVELS.map(({ key, label }) => ({ key, label })),
@@ -27,12 +28,16 @@ app.get("/api/config", (_req, res) => {
 
 // Speak a line in her voice. Body: { text, mood }.
 app.post("/api/tts", async (req, res) => {
-  const { text, mood } = req.body || {};
+  const { text, mood, voice } = req.body || {};
   if (typeof text !== "string" || !text.trim()) {
     return res.status(400).json({ error: "text is required" });
   }
   try {
-    const out = await synthesize(text.trim(), typeof mood === "string" ? mood : "neutral");
+    const out = await synthesize(
+      text.trim(),
+      typeof mood === "string" ? mood : "neutral",
+      typeof voice === "string" ? voice : "default"
+    );
     if (!out) return res.status(204).end(); // expressive voice not configured
     res.setHeader("Content-Type", out.contentType);
     res.send(out.audio);

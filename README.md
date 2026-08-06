@@ -103,8 +103,22 @@ She speaks her replies out loud, and her delivery follows her mood.
   and rate by mood, but it can't laugh or truly emote.
 - The 🔊 button toggles voice on/off.
 
-State lives in the browser and is sent with each request, so the server is
-stateless and holds no conversation data.
+### Controlling how she sounds (pitch, age, tone)
+
+The ⚙️ panel has voice controls. Be aware of what's a live knob vs. a voice choice:
+
+- **Pitch & Speed** are live sliders — they adjust the **browser** voice in real
+  time. (ElevenLabs pitch is baked into the chosen voice, not a live parameter.)
+- **Age and tone quality** (young lady vs. mature; breathy, raspy, throaty) come
+  from *which voice* you use — there's no "breathiness dial" in any TTS engine.
+  The voice picker lets you choose:
+  - On the browser path, among your system's voices (different ages/timbres).
+  - On the expressive path, among **your own ElevenLabs voices**. Set them up with
+    `ELEVENLABS_VOICES="Young=voiceIdA,Mature=voiceIdB,Breathy=voiceIdC"` — pick or
+    design voices in ElevenLabs that have the age/rasp/breathiness you want, and
+    they appear in the picker.
+
+Voice prefs are saved in your browser.
 
 ## Run it
 

@@ -9,6 +9,24 @@ const VOICE_MODEL = process.env.ELEVENLABS_MODEL || "eleven_v3";
 
 export const voiceEnabled = Boolean(API_KEY);
 
+// Named ElevenLabs voices for age/tone control — this is how you get "young",
+// "mature", "breathy", or "raspy": pick voices from the ElevenLabs library (or
+// design them) that have that quality, then list them here:
+//   ELEVENLABS_VOICES="Young=voiceIdA,Mature=voiceIdB,Breathy=voiceIdC"
+function parseVoicePresets() {
+  const list = [{ key: "default", label: "Default", voiceId: VOICE_ID }];
+  const raw = process.env.ELEVENLABS_VOICES;
+  if (raw) {
+    for (const part of raw.split(",")) {
+      const [label, id] = part.split("=").map((s) => (s || "").trim());
+      if (label && id) list.push({ key: label.toLowerCase().replace(/[^a-z0-9]+/g, "-"), label, voiceId: id });
+    }
+  }
+  return list;
+}
+export const voicePresets = parseVoicePresets();
+const voiceIdFor = (key) => (voicePresets.find((v) => v.key === key) || voicePresets[0]).voiceId;
+
 // Map her mood onto delivery. Higher style = more expressive/emotive;
 // stability trades consistency for expressive range.
 const MOOD_VOICE = {
@@ -26,12 +44,12 @@ const MOOD_VOICE = {
  * Synthesize speech. Returns { audio: Buffer, contentType } or null if disabled.
  * `text` may contain inline emotion tags (e.g. [laughs]) which v3 voices render.
  */
-export async function synthesize(text, mood = "neutral") {
+export async function synthesize(text, mood = "neutral", voiceKey = "default") {
   if (!API_KEY) return null;
 
   const settings = MOOD_VOICE[mood] || MOOD_VOICE.neutral;
   const res = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
+    `https://api.elevenlabs.io/v1/text-to-speech/${voiceIdFor(voiceKey)}`,
     {
       method: "POST",
       headers: {

@@ -145,6 +145,17 @@ select.field { appearance: none; cursor: pointer; }
   cursor: pointer;
 }
 .reset-btn:hover { border-color: var(--accent); color: var(--text); }
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.slider-row span { width: 44px; flex: none; }
+.slider-row input[type="range"] { flex: 1; accent-color: var(--accent); }
+.voice-help { font-size: 11px; color: var(--muted); opacity: 0.75; margin-top: 4px; line-height: 1.4; }
 
 .messages {
   flex: 1;

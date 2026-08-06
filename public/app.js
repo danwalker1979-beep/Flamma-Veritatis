@@ -33,8 +33,24 @@ const els = {
   politicsNote: document.getElementById("politicsNote"),
   accent: document.getElementById("accent"),
   vernacular: document.getElementById("vernacular"),
+  pitch: document.getElementById("pitch"),
+  rate: document.getElementById("rate"),
+  voiceSelect: document.getElementById("voiceSelect"),
+  voiceHelp: document.getElementById("voiceHelp"),
   reset: document.getElementById("reset"),
 };
+
+// Voice playback prefs live in the browser (they're purely how she sounds).
+const voicePrefs = (() => {
+  try {
+    return { pitch: 1, rate: 1, voiceKey: "default", sysVoice: "", ...(JSON.parse(localStorage.getItem("companionVoice") || "{}")) };
+  } catch {
+    return { pitch: 1, rate: 1, voiceKey: "default", sysVoice: "" };
+  }
+})();
+function saveVoicePrefs() {
+  localStorage.setItem("companionVoice", JSON.stringify(voicePrefs));
+}
 
 // A stable id per browser so she remembers this person across sessions.
 function getUserId() {
@@ -58,7 +74,10 @@ const state = {
   pace: "natural",
   temperaments: [],
   accents: [],
+  voices: [], // ElevenLabs presets, if configured
 };
+
+const clampNum = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 
 function fillSelect(sel, options) {
   sel.innerHTML = "";
@@ -115,7 +134,7 @@ async function speak(text, mood) {
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, mood }), // full text incl. cues
+        body: JSON.stringify({ text, mood, voice: voicePrefs.voiceKey }), // full text incl. cues
       });
       if (res.ok) {
         const blob = await res.blob();
@@ -131,17 +150,21 @@ async function speak(text, mood) {
   if ("speechSynthesis" in window) {
     const u = new SpeechSynthesisUtterance(clean);
     const v = BROWSER_VOICE[mood] || BROWSER_VOICE.neutral;
-    u.pitch = v.pitch;
-    u.rate = v.rate;
-    // Nudge the spoken accent by locale where a matching voice exists.
-    const acc = state.accents.find((a) => a.key === els.accent.value);
-    const lang = (acc && acc.lang) || "en-US";
-    u.lang = lang;
+    // Slider pitch/speed set the baseline; mood nudges around it.
+    u.pitch = clampNum(voicePrefs.pitch * v.pitch, 0, 2);
+    u.rate = clampNum(voicePrefs.rate * v.rate, 0.1, 3);
     const voices = speechSynthesis.getVoices();
-    const langMatch = voices.filter((x) => x.lang && x.lang.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()));
-    const pool = langMatch.length ? langMatch : voices;
-    const female = pool.find((x) => /female|woman|zira|samantha|aria|amelie|libby|sonia/i.test(x.name)) || pool.find((x) => x.lang === lang);
-    if (female) u.voice = female;
+    // A specifically chosen voice wins (that's the age/timbre control).
+    let chosen = voicePrefs.sysVoice ? voices.find((x) => x.name === voicePrefs.sysVoice) : null;
+    if (!chosen) {
+      const acc = state.accents.find((a) => a.key === els.accent.value);
+      const lang = (acc && acc.lang) || "en-US";
+      const langMatch = voices.filter((x) => x.lang && x.lang.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()));
+      const pool = langMatch.length ? langMatch : voices;
+      chosen = pool.find((x) => /female|woman|zira|samantha|aria|amelie|libby|sonia/i.test(x.name)) || pool.find((x) => x.lang === lang);
+      u.lang = lang;
+    }
+    if (chosen) u.voice = chosen;
     speechSynthesis.cancel();
     speechSynthesis.speak(u);
   }
@@ -176,6 +199,28 @@ els.settingsToggle.addEventListener("click", () => {
   els.settings.hidden = !showing;
   els.settingsToggle.setAttribute("aria-pressed", String(showing));
 });
+
+// The voice picker adapts to the active engine: ElevenLabs presets (which is
+// where age/breathy/raspy voices live) when configured, otherwise the browser's
+// own system voices (still different ages/timbres to choose from).
+function setupVoiceSelect() {
+  if (state.expressiveVoice && state.voices.length > 1) {
+    fillSelect(els.voiceSelect, state.voices);
+    els.voiceSelect.value = state.voices.some((v) => v.key === voicePrefs.voiceKey) ? voicePrefs.voiceKey : "default";
+    els.voiceHelp.textContent =
+      "Pick a voice for her age & tone (young, mature, breathy, raspy — whatever you set up in ELEVENLABS_VOICES). Pitch/Speed apply to the browser fallback voice.";
+    els.voiceSelect.onchange = () => { voicePrefs.voiceKey = els.voiceSelect.value; saveVoicePrefs(); };
+  } else if ("speechSynthesis" in window) {
+    const voices = speechSynthesis.getVoices();
+    if (!voices.length) return; // will re-fire on voiceschanged
+    const opts = [{ key: "", label: "Auto (match accent)" }, ...voices.map((v) => ({ key: v.name, label: `${v.name} (${v.lang})` }))];
+    fillSelect(els.voiceSelect, opts);
+    els.voiceSelect.value = voices.some((v) => v.name === voicePrefs.sysVoice) ? voicePrefs.sysVoice : "";
+    els.voiceHelp.textContent =
+      "Pitch & Speed are live. Different system voices give you different ages and timbres — for breathy/raspy/older voices, add an ElevenLabs key.";
+    els.voiceSelect.onchange = () => { voicePrefs.sysVoice = els.voiceSelect.value; saveVoicePrefs(); };
+  }
+}
 
 els.reset.addEventListener("click", async () => {
   if (!confirm("Wipe her memory of you and start over?")) return;
@@ -233,6 +278,16 @@ async function init() {
   els.accent.value = s.accent || "neutral";
   fillSelect(els.vernacular, cfg.vernaculars || []);
   els.vernacular.value = s.vernacular || "match";
+
+  // Voice controls.
+  state.voices = cfg.voices || [];
+  els.pitch.value = voicePrefs.pitch;
+  els.rate.value = voicePrefs.rate;
+  els.pitch.addEventListener("input", () => { voicePrefs.pitch = parseFloat(els.pitch.value); saveVoicePrefs(); });
+  els.rate.addEventListener("input", () => { voicePrefs.rate = parseFloat(els.rate.value); saveVoicePrefs(); });
+  setupVoiceSelect();
+  if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = setupVoiceSelect;
+
   els.occupation.value = prof.occupation || "";
   els.interests.value = prof.interests || "";
   els.politicsNote.value = prof.politicsNote || "";
