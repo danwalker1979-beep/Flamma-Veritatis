@@ -22,6 +22,20 @@ anyone instantly.
 - `server.js` — a thin Express API (`/api/chat`, `/api/tts`, `/api/config`) serving the UI.
 - `public/` — the chat interface (mood face + rapport meter + voice).
 
+## Tuning her (the ⚙️ panel)
+
+Two dials, both live — change them any time and they apply to the next message:
+
+- **Temperament** — her baseline disposition, from `Sweet` → `Playful` → `Chill` →
+  `Dramatic` → `Serious` → `Fiery`. This is where she *starts*; the mood engine
+  still branches her into any emotion as the conversation steers her.
+- **When you push a boundary** — how she deflects: `Gentle` (soft redirect),
+  `Balanced` (playful "behave"), or `Firm` (shuts it down, goes cold if you keep
+  pushing).
+
+Add temperaments or reword them in `TEMPERAMENTS` / `DEFLECTION_STYLES` in
+`companion.js`.
+
 ## Voice
 
 She speaks her replies out loud, and her delivery follows her mood.

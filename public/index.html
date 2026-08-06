@@ -23,7 +23,19 @@
           <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
         </div>
         <button id="voiceToggle" class="voice-toggle" title="Toggle voice" aria-pressed="true">🔊</button>
+        <button id="settingsToggle" class="voice-toggle" title="Settings" aria-pressed="false">⚙️</button>
       </header>
+
+      <section class="settings" id="settings" hidden>
+        <div class="setting">
+          <div class="setting-label">Temperament <span class="hint">where she starts</span></div>
+          <div class="segmented" id="temperamentRow"></div>
+        </div>
+        <div class="setting">
+          <div class="setting-label">When you push a boundary</div>
+          <div class="segmented" id="deflectionRow"></div>
+        </div>
+      </section>
 
       <main class="messages" id="messages"></main>
 

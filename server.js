@@ -1,7 +1,7 @@
 import express from "express";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
-import { respond, COMPANION_NAME, MOODS } from "./companion.js";
+import { respond, COMPANION_NAME, MOODS, TEMPERAMENTS, DEFLECTION_STYLES } from "./companion.js";
 import { synthesize, voiceEnabled } from "./tts.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -10,7 +10,13 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.static(join(here, "public")));
 
 app.get("/api/config", (_req, res) => {
-  res.json({ name: COMPANION_NAME, moods: MOODS, expressiveVoice: voiceEnabled });
+  res.json({
+    name: COMPANION_NAME,
+    moods: MOODS,
+    expressiveVoice: voiceEnabled,
+    temperaments: TEMPERAMENTS.map(({ key, label, startMood }) => ({ key, label, startMood })),
+    deflectionStyles: DEFLECTION_STYLES.map(({ key, label }) => ({ key, label })),
+  });
 });
 
 // Speak a line in her voice. Body: { text, mood }.
@@ -42,9 +48,13 @@ app.post("/api/chat", async (req, res) => {
     : [];
   const r = Number.isFinite(rapport) ? rapport : 10;
   const m = typeof mood === "string" ? mood : "neutral";
+  const opts = {
+    temperament: typeof req.body?.temperament === "string" ? req.body.temperament : "chill",
+    deflection: typeof req.body?.deflection === "string" ? req.body.deflection : "balanced",
+  };
 
   try {
-    const result = await respond(safeHistory, message.trim(), r, m);
+    const result = await respond(safeHistory, message.trim(), r, m, opts);
     res.json(result);
   } catch (err) {
     console.error("chat error:", err);

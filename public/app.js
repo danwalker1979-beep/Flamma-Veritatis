@@ -21,6 +21,10 @@ const els = {
   rapportNum: document.getElementById("rapportNum"),
   meterFill: document.getElementById("meterFill"),
   voiceToggle: document.getElementById("voiceToggle"),
+  settingsToggle: document.getElementById("settingsToggle"),
+  settings: document.getElementById("settings"),
+  temperamentRow: document.getElementById("temperamentRow"),
+  deflectionRow: document.getElementById("deflectionRow"),
 };
 
 // Conversation state lives in the browser; the server is stateless.
@@ -31,7 +35,28 @@ const state = {
   mood: "neutral",
   voiceOn: true,
   expressiveVoice: false, // server has an expressive TTS provider configured
+  temperament: "chill",
+  deflection: "balanced",
+  temperaments: [],
 };
+
+// Build a segmented control; onPick(key) fires on selection.
+function buildSegmented(row, options, selectedKey, onPick) {
+  row.innerHTML = "";
+  for (const opt of options) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = opt.label;
+    btn.dataset.key = opt.key;
+    if (opt.key === selectedKey) btn.classList.add("active");
+    btn.addEventListener("click", () => {
+      row.querySelectorAll("button").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      onPick(opt.key);
+    });
+    row.appendChild(btn);
+  }
+}
 
 // Inline cues like [laughs] are for the voice, not the screen.
 function displayText(text) {
@@ -110,11 +135,31 @@ els.voiceToggle.addEventListener("click", () => {
   if (!state.voiceOn && "speechSynthesis" in window) speechSynthesis.cancel();
 });
 
+els.settingsToggle.addEventListener("click", () => {
+  const showing = els.settings.hidden;
+  els.settings.hidden = !showing;
+  els.settingsToggle.setAttribute("aria-pressed", String(showing));
+});
+
 async function init() {
   try {
     const cfg = await (await fetch("/api/config")).json();
     state.name = cfg.name || state.name;
     state.expressiveVoice = Boolean(cfg.expressiveVoice);
+    state.temperaments = cfg.temperaments || [];
+
+    buildSegmented(els.temperamentRow, state.temperaments, state.temperament, (key) => {
+      state.temperament = key;
+      // Reflect the new starting disposition on the face right away.
+      const t = state.temperaments.find((x) => x.key === key);
+      if (t && t.startMood) {
+        state.mood = t.startMood;
+        render();
+      }
+    });
+    buildSegmented(els.deflectionRow, cfg.deflectionStyles || [], state.deflection, (key) => {
+      state.deflection = key;
+    });
   } catch {}
   render();
   const greeting = `Hey. I'm ${state.name}. Who are you?`;
@@ -143,6 +188,8 @@ els.form.addEventListener("submit", async (e) => {
         message,
         rapport: state.rapport,
         mood: state.mood,
+        temperament: state.temperament,
+        deflection: state.deflection,
       }),
     });
     const data = await res.json();
